@@ -14,9 +14,7 @@
 
 ## Installation
 
-**Clone this repository**
-
-Navigate to project folder:
+After to clone this repository, navigate to project folder:
 ```bash
 cd biopep
 ```

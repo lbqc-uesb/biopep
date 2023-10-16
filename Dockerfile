@@ -33,7 +33,7 @@ RUN unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
 ENV DISPLAY=:99
 
 # download Protein Data Bank (PDB)
-RUN wget https://ftp.wwpdb.org/pub/pdb/derived_data/pdb_seqres.txt.gz \
+RUN wget https://s3.rcsb.org/pub/pdb/derived_data/pdb_seqres.txt.gz \
     && gzip -d pdb_seqres.txt.gz \
     && mkdir blastdb \
     && mv pdb_seqres.txt /blastdb/pdb_seqres.fasta

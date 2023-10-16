@@ -14,10 +14,7 @@
 
 ## Installation
 
-Clone this repository:
-```bash
-git clone -b docker git@github.com:WilliamJSS/biopep.git
-```
+**Clone this repository**
 
 Navigate to project folder:
 ```bash

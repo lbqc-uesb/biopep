@@ -21,7 +21,7 @@ class Dock:
         self.driver = Chrome(options=options)
         self.peptide = peptide
         self.index = index
-        self.receptor = receptor
+        self.receptor = f'{os.getcwd()}/{receptor}'
         self.site = site
 
     def submit(self):

@@ -19,35 +19,23 @@ After to clone this repository, navigate to project folder:
 cd biopep
 ```
 
-Copy .env file and add the `Modeller KEY`:
+Export biopep to path
 ```bash
-cp .env.example .env
+export BIOPEP_PATH="$(pwd)"
+export PATH="$BIOPEP_PATH/bin:$PATH"
 ```
 
-Up containers:
+Run installer script
 ```bash
-docker compose up -d
+biopep install
 ```
 
 ## Run
 
-Access BioPep container shell:
-```bash
-docker exec -it biopep bash
-```
-
-Activate conda environment:
-```bash
-eval "$(conda shell.bash hook)" && conda activate biopep-env
-```
-
 Execute BioPep:
 ```bash
-python main.py query.fasta taskname
+biopep run
 ```
-
-`query.fasta`: file with peptides for submit <br>
-`taskname`: title to your task, for save in output folder
 
 ## Please, cite:
 > ### BioPep

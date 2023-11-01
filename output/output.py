@@ -5,22 +5,28 @@ import pandas as pd
 
 
 # Start a task, generating an output folder with current datetime and task name
-def generate(task: str):
+def generate(task:str, query:str, receptor:str):
     dt = datetime.today()
-    log_file = f'{os.getcwd()}/output/outputs_history.log'
     directory = f'{dt.strftime("%Y.%m.%d-%H.%M.%S")}-{task}'
-    path = f'{os.getcwd()}/output/{directory}'
-    print(f'Generated output in: {path}')
-    os.mkdir(path)
 
-    endline = '\n' if os.path.isfile(log_file) else ''
+    # copy input files to input folder
+    input_path = f'{os.getcwd()}/input/{directory}'
+    print(f'Copy input files to: {input_path}')
+    os.mkdir(input_path)
+    os.system(f'cp {query} {input_path}/{query.split("/")[-1]}')
+    os.system(f'cp {receptor} {input_path}/{receptor.split("/")[-1]}')
+
+    # generate output folder 
+    output_path = f'{os.getcwd()}/output/{directory}'
+    print(f'Generated output in: {output_path}')
+    os.mkdir(output_path)
 
     # Write path in log file
+    log_file = f'{os.getcwd()}/output/outputs_history.log'
+    endline = '\n' if os.path.isfile(log_file) else ''
     with open(log_file, 'a') as out_hist:
         line = f'{endline}{task}, started at = {dt.strftime("%Y-%m-%d %H:%M:%S")}, finished at = '
         out_hist.write(line)
-
-    return path
 
 
 # Get all tasks output paths

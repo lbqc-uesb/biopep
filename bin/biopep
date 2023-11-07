@@ -2,6 +2,7 @@
 
 # install BIOPEP
 if [ $1 == "install" ]; then
+    # check if docker is installed
     if ! command -v docker &>/dev/null; then
         echo
         echo "BIOPEP requires docker to run, you need to install it!"
@@ -21,47 +22,73 @@ if [ $1 == "install" ]; then
     sed -i "/^MODELLER_KEY/s/$/\"$MODELLER_KEY\"/" .env
 
     echo
-    echo "Building docker containers..."
+    echo "Building docker container..."
     docker compose up -d
+
+    echo
+    echo "Biopep has been installed! Use \"biopep run -h\" to see instructions to execute biopep pipeline!"
 
     exit
 
 # Run BIOPEP
 elif [ $1 == "run" ]; then
 
+    # check if biopep container exists
+    if [ -z $(docker ps -f "name=biopep" -qa) ]; then
+        echo "You not yet install biopep! Use \"biopep install\" to install it!"
+        exit 1
+    fi
+
     # check if biopep container is running
     if [ -z $(docker ps -f "name=biopep" -q) ]; then
+        echo
         docker compose -p biopep start
     fi
 
     # Get run options
+    QUERY=""
+    RECEPTOR=""
+    SITE=""
     CUT_OFF="30"
-    QUERY="input/example/query.fasta"
-    RECEPTOR="input/example/receptor_6lzg.pdb"
-    SITE="455:B, 486:B, 493:B, 501:B, 505:B"
     TASK="task"
 
     shift # remove 'run' argument of getopts
-    while getopts ":q:r:s:c:t:" option; do
+    while getopts ":hq:r:s:c:t:" option; do
         case $option in
+        h) # Help
+            echo
+            echo "Usage: biopep run [OPTIONS]"
+            echo
+            echo "Execute biopep pipeline"
+            echo
+            echo "Options:"
+            echo "  -q   QUERY: query sequences file (.fasta, example: \"/home/myuser/query.fasta\")"
+            echo "  -r   RECEPTOR: receptor file (.pdb, example: \"/home/myuser/receptor.pdb\")"
+            echo "  -s   SITE: binding site (example: \"455:B, 486:B, 493:B, 501:B\")"
+            echo "  -c   CUT-OFF: max length of sequence (default: 30)"
+            echo "  -t   TASK: taskname to results folder (default: \"task\")"
+            echo
+            echo "For more help on how to use BioPep, head to https://github.com/lbqc-uesb/biopep"
+            exit
+            ;;
         c) # Set cut off
             CUT_OFF=$OPTARG
             if [[ ! "$CUT_OFF" =~ ^[0-9]+$ ]]; then
-                echo "Error: the cut off must be a number, \"$CUT_OFF\" is not a number."
+                echo "ERROR: the cut off must be a number, \"$CUT_OFF\" is not a number."
                 exit 1
             fi
             ;;
         q) # Set query sequences file
             QUERY=$OPTARG
             if [ ! -f $QUERY ]; then
-                echo "Error: query sequences file not found \"$QUERY\"."
+                echo "ERROR: query sequences file not found \"$QUERY\"."
                 exit 1
             fi
             ;;
         r) # Set receptor pdb file
             RECEPTOR=$OPTARG
             if [ ! -f $RECEPTOR ]; then
-                echo "Error: receptor pdb file not found \"$RECEPTOR\"."
+                echo "ERROR: receptor pdb file not found \"$RECEPTOR\"."
                 exit 1
             fi
             ;;
@@ -72,11 +99,40 @@ elif [ $1 == "run" ]; then
             TASK=$OPTARG
             ;;
         \?) # Invalid option
-            echo "Error: Invalid option"
+            echo "ERROR: Invalid option"
             exit 1
             ;;
         esac
     done
+
+    # check empty inputs
+    if [ -z $QUERY ]; then
+        echo
+        read -p "Input your QUERY sequences file: " QUERY
+    fi
+    if [ -z $RECEPTOR ]; then
+        echo
+        read -p "Input your RECEPTOR pdb file: " RECEPTOR
+    fi
+    if [ -z $SITE ]; then
+        echo
+        read -p "Input your binding SITE: " SITE
+    fi
+
+    # check errors
+    echo
+    if [[ ! "$CUT_OFF" =~ ^[0-9]+$ ]]; then
+        echo "ERROR: the cut off must be a number, \"$CUT_OFF\" is not a number."
+        exit 1
+    fi
+    if [ ! -f $QUERY ]; then
+        echo "ERROR: query sequences file not found \"$QUERY\"."
+        exit 1
+    fi
+    if [ ! -f $RECEPTOR ]; then
+        echo "ERROR: receptor pdb file not found \"$RECEPTOR\"."
+        exit 1
+    fi
 
     # execute BIOPEP
     docker exec -it biopep \
@@ -87,6 +143,6 @@ elif [ $1 == "run" ]; then
 
 # Invalid argument
 else
-    echo "Error: invalid argument \"$1\""
+    echo "ERROR: invalid argument \"$1\""
     exit 1
 fi

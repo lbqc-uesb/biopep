@@ -36,6 +36,21 @@ Execute BioPep:
 ```bash
 biopep run
 ```
+or
+```bash
+biopep run -q {QUERY} -r {RECEPTOR} -s {SITE}
+```
+or
+```bash
+biopep run -q {QUERY} -r {RECEPTOR} -s {SITE} -t {TASK} -c {CUT OFF}
+```
+
+### Options:
+- `-q` | **QUERY**: query sequences file (.fasta, example: "*/home/myuser/query.fasta*")
+- `-r` | **RECEPTOR**: receptor file (.pdb, example: "*/home/myuser/receptor.pdb*")
+- `-s` | **SITE**: binding site (example: "*455:B, 486:B, 493:B, 501:B*")
+- `-c` | **CUT-OFF**: max length of sequence (default: 30)
+- `-t` | **TASK**: taskname to results folder (default: "*task*")
 
 ## Please, cite:
 > ### BioPep

@@ -136,7 +136,7 @@ elif [ $1 == "run" ]; then
 
     # execute BIOPEP
     docker exec -it biopep \
-        conda run -n biopep-env /bin/bash -c \
+        conda run -n biopep-env --live-stream /bin/bash -c \
         "python -u main.py \"$QUERY\" \"$RECEPTOR\" \"$SITE\" \"$CUT_OFF\" \"$TASK\""
 
     exit

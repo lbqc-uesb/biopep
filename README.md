@@ -12,17 +12,29 @@
 - A [Modeller](https://salilab.org/modeller/) License Key;
 - System Operational with [Docker](https://www.docker.com) installed;
 
-## Installation
+## Download
 
-After to clone this repository, navigate to project folder:
+Download biopep source code:
 ```bash
-cd biopep
+curl -L https://github.com/lbqc-uesb/biopep/archive/refs/tags/v2.0.tar.gz -o biopep.tar.gz
 ```
+
+Unzip files:
+```bash
+tar -xzf biopep.tar.gz
+```
+
+Navigate to biopep folder:
+```bash
+cd biopep-2.0
+```
+
+## Installation
 
 Export biopep to path
 ```bash
 export BIOPEP_PATH="$(pwd)"
-export PATH="$BIOPEP_PATH/bin:$PATH"
+export PATH="$PATH:$BIOPEP_PATH/bin"
 ```
 
 Run installer script

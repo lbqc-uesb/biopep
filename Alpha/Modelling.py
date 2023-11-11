@@ -15,7 +15,7 @@ class Modelling:
         self.peptide = peptide
         self.cutoff = cutoff
 
-    def run_modelling(self):
+    def run(self):
         path = f'output/{output.get()}'
         pep_path = f'{path}/modelling/pep{self.index}'
         with open(f'{pep_path}/pep{self.index}.csv', 'r') as file:

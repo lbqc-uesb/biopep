@@ -6,7 +6,7 @@ from Bio.Blast.Applications import NcbiblastpCommandline
 from output import output
 
 
-class Peptide:
+class Search:
     def __init__(self, index, peptide):
         self.index = index
         self.peptide = peptide

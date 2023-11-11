@@ -7,7 +7,7 @@ import pandas as pd
 # Start a task, generating an output folder with current datetime and task name
 def generate(task:str, query:str, receptor:str):
     dt = datetime.today()
-    directory = f'{dt.strftime("%Y.%m.%d-%H.%M.%S")}-{task}'
+    directory = f'{dt.strftime("%Y_%m_%d_%H%M%S")}_{task}'
 
     # copy input files to input folder
     input_path = f'{os.getcwd()}/input/{directory}'
@@ -25,8 +25,10 @@ def generate(task:str, query:str, receptor:str):
     log_file = f'{os.getcwd()}/output/outputs_history.log'
     endline = '\n' if os.path.isfile(log_file) else ''
     with open(log_file, 'a') as out_hist:
-        line = f'{endline}{task}, started at = {dt.strftime("%Y-%m-%d %H:%M:%S")}, finished at = '
+        line = f'{endline}{task}, started at = {dt.strftime("%Y/%m/%d %H:%M:%S")}, finished at = '
         out_hist.write(line)
+
+    return directory
 
 
 # Get all tasks output paths
@@ -37,7 +39,7 @@ def getall():
         for line in lines:
             [task, started_at, _] = line.split(', ')
             dt = datetime.fromisoformat(started_at[13:])
-            out = f'{dt.strftime("%Y.%m.%d-%H.%M.%S")}-{task}'
+            out = f'{dt.strftime("%Y_%m_%d_%H%M%S")}_{task}'
             outputs.append(out)
     return outputs
 

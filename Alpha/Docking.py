@@ -12,7 +12,7 @@ import csv
 import os
 
 
-class Dock:
+class Docking:
     def __init__(self, index, peptide, receptor, site):
         options = Options()
         options.add_argument('--disable-dev-shm-usage')

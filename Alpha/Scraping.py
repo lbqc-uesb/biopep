@@ -21,8 +21,14 @@ class Scraping:
         df = pd.read_csv(f"{out_path}/out_submit.csv")
 
         items = items_copy = [
-            {"Index": x["Index"], "Link": x["Link"], "Energy": "NaN", "Status": "NONE"}
-            for i, x in df.iterrows()
+            {
+                "Index": row["Index"],
+                "Sequence": row["Sequence"],
+                "Link": row["Link"],
+                "Energy": "NaN",
+                "Status": "NONE",
+            }
+            for i, row in df.iterrows()
         ]
 
         # Time to reload page in seconds
@@ -36,7 +42,7 @@ class Scraping:
 
         while len(items) > 0:
             driver = Chrome(options=self.options)
-            for i, item in enumerate(items):
+            for item in items:
                 driver.get(item["Link"])
                 time.sleep(3)
 
@@ -49,6 +55,8 @@ class Scraping:
                 elif "Your HPEPDOCK results" in driver.page_source:
                     item["Status"] = "FINISHED"
                 else:
+                    item["Status"] = "ERROR"
+                    item["Energy"] = "ERROR"
                     continue
 
                 # Docking Score (1st model)
@@ -84,6 +92,11 @@ class Scraping:
 
             driver.close()
 
+            # save energy info into csv file
+            df["Energies"] = [item["Energy"] for item in items_copy]
+            df.to_csv(f"{out_path}/results_dock.csv", index=False)
+
+            # check if exists docks left
             items = [item for item in items if item["Energy"] == "NaN"]
             if len(items) > 0:
                 print(f"Waiting docking... pep docks left: {len(items)}")
@@ -99,8 +112,9 @@ class Scraping:
                     "  docks completed:",
                     len([k for k in items_copy if k["Status"] == "FINISHED"]),
                 )
+                print(
+                    "  docks failed:",
+                    len([k for k in items_copy if k["Status"] == "ERROR"]),
+                )
                 print(flush=True)
                 time.sleep(reloadtime)
-
-        df["Energies"] = [item["Energy"] for item in items_copy]
-        df.to_csv(f"{out_path}/results_dock.csv")

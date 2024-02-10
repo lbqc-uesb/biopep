@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+
+# check if biopep container exists
+if [ -z $(docker ps -f "name=biopep" -qa) ]; then
+    echo "You not yet install biopep! Use \"make install\" to install it!"
+    exit 1
+fi
+
+# check if biopep container is running
+if [ -z $(docker ps -f "name=biopep" -q) ]; then
+    echo
+    docker compose -p biopep start
+fi
+
+# Get run options
+while getopts ":hq:r:s:c:t:" option; do
+    case $option in
+    c) # Set cut off
+        CUT_OFF=$OPTARG
+        if [[ ! "$CUT_OFF" =~ ^[0-9]+$ ]]; then
+            echo "ERROR: the cut off must be a number, \"$CUT_OFF\" is not a number."
+            exit 1
+        fi
+        ;;
+    q) # Set query sequences file
+        QUERY=$OPTARG
+        if [[ ! -f $QUERY ]]; then
+            echo "ERROR: query sequences file not found \"$QUERY\"."
+            exit 1
+        fi
+        ;;
+    r) # Set receptor pdb file
+        RECEPTOR=$OPTARG
+        if [ ! -f $RECEPTOR ]; then
+            echo "ERROR: receptor pdb file not found \"$RECEPTOR\"."
+            exit 1
+        fi
+        ;;
+    s) # Set site string
+        SITE=$OPTARG
+        ;;
+    t) # Set taskname
+        TASK=$OPTARG
+        ;;
+    \?) # Invalid option
+        echo "ERROR: Invalid option"
+        exit 1
+        ;;
+    esac
+done
+
+# check empty inputs
+if [ -z $QUERY ]; then
+    echo
+    read -p "Input your QUERY sequences file: " QUERY
+fi
+if [ -z $RECEPTOR ]; then
+    echo
+    read -p "Input your RECEPTOR pdb file: " RECEPTOR
+fi
+if [ -z $SITE ]; then
+    echo
+    read -p "Input your binding SITE: " SITE
+fi
+
+# check errors
+echo
+if [[ ! "$CUT_OFF" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: the cut off must be a number, \"$CUT_OFF\" is not a number."
+    exit 1
+fi
+if [ ! -f $QUERY ]; then
+    echo "ERROR: query sequences file not found \"$QUERY\"."
+    exit 1
+fi
+if [ ! -f $RECEPTOR ]; then
+    echo "ERROR: receptor pdb file not found \"$RECEPTOR\"."
+    exit 1
+fi
+
+# execute BIOPEP
+docker exec -it biopep \
+    conda run -n biopep-env --live-stream /bin/bash -c \
+    "python -u main.py \"$QUERY\" \"$RECEPTOR\" \"$SITE\" \"$CUT_OFF\" \"$TASK\""

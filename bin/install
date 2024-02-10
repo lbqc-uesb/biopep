@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# check if docker is installed
+if ! command -v docker &>/dev/null; then
+    echo
+    echo "BIOPEP requires docker to run, you need to install it!"
+    echo "See: https://docs.docker.com/get-docker/"
+    exit 1
+fi
+
+echo
+echo "=============== Welcome to BIOPEP installation! ================"
+echo "Visit our website (LBQC - http://www2.uesb.br/laboratorios/lbqc)"
+echo
+
+cp .env.example .env
+
+echo "See: https://salilab.org/modeller/"
+read -p "Input your MODELLER LICENSE KEY: " MODELLER_KEY
+sed -i "/^MODELLER_KEY/s/$/\"$MODELLER_KEY\"/" .env
+
+echo
+echo "Building docker container..."
+docker compose up -d
+
+echo
+echo "Biopep has been installed! Use \"biopep run -h\" to see instructions to execute biopep pipeline!"

@@ -31,30 +31,24 @@ cd biopep-2.0
 
 ## Installation
 
-Export biopep to path
-```bash
-export BIOPEP_PATH="$(pwd)"
-export PATH="$PATH:$BIOPEP_PATH/bin"
-```
-
 Run installer script
 ```bash
-biopep install
+make install
 ```
 
 ## Run
 
 Execute BioPep:
 ```bash
-biopep run
+make run
 ```
 or
 ```bash
-biopep run -q {QUERY} -r {RECEPTOR} -s {SITE}
+make run query={QUERY} receptor={RECEPTOR} site={SITE}
 ```
 or
 ```bash
-biopep run -q {QUERY} -r {RECEPTOR} -s {SITE} -t {TASK} -c {CUT OFF}
+make run query={QUERY} receptor={RECEPTOR} site={SITE} task={TASK} cutoff={CUT OFF}
 ```
 
 ### Options:

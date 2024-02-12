@@ -16,12 +16,12 @@ echo
 cp .env.example .env
 
 echo "See: https://salilab.org/modeller/"
-read -p "Input your MODELLER LICENSE KEY: " MODELLER_KEY
-sed -i "/^MODELLER_KEY/s/$/\"$MODELLER_KEY\"/" .env
+read -p "Input your MODELLER LICENSE KEY: " KEY_MODELLER
+sed -i "/^KEY_MODELLER/s/$/$KEY_MODELLER/" .env
 
 echo
-echo "Building docker container..."
-docker compose up -d
+echo "Building docker image..."
+docker build -t biopep .
 
 echo
-echo "Biopep has been installed! Use \"biopep run -h\" to see instructions to execute biopep pipeline!"
+echo "Biopep has been installed! Use \"make run\" to execute biopep pipeline!"

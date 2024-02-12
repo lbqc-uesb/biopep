@@ -1,9 +1,9 @@
 # run options
+cutoff=""
+task=""
 query=""
 receptor=""
 site=""
-task="task"
-cutoff="30"
 
 .PHONY:install
 install:
@@ -11,4 +11,4 @@ install:
 
 .PHONY:run
 run:
-	@./bin/run -q $(query) -r $(receptor) -s $(site) -t $(task) -c $(cutoff)
+	@./bin/run -c $(cutoff) -t $(task) -q $(query) -r $(receptor) -s $(site)

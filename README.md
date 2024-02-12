@@ -58,6 +58,14 @@ make run query={QUERY} receptor={RECEPTOR} site={SITE} task={TASK} cutoff={CUT O
 - `-c` | **CUT-OFF**: max length of sequence (default: 30)
 - `-t` | **TASK**: taskname to results folder (default: "*task*")
 
+### Examples:
+```bash
+make run query=input/example/query.fasta receptor=input/example/receptor_6lzg.pdb site="455:B, 486:B, 493:B, 501:B, 505:B"
+```
+```bash
+make run query=input/example/query.fasta receptor=input/example/receptor_6lzg.pdb site="455:B, 486:B, 493:B, 501:B, 505:B" cutoff=35 task=mydocking
+```
+
 ## Please, cite:
 > ### BioPep
 > Lucas Sousa Palmeira, & William Sena. (2021). BioPep. Zenodo. https://doi.org/10.5281/zenodo.5781778

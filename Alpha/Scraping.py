@@ -8,10 +8,11 @@ import pandas as pd
 import time
 import wget
 import os
+import csv
 
 
-RELOAD_TIME = 120 # time to reload results page in seconds
-TIME_TO_WAIT = 10 # time to wait webdriver in seconds
+RELOAD_TIME = 120  # time to reload results page in seconds
+TIME_TO_WAIT = 10  # time to wait webdriver in seconds
 
 
 class Scraping:
@@ -22,16 +23,28 @@ class Scraping:
         out_path = f"{os.getcwd()}/output/{self.task_id}"
         df = pd.read_csv(f"{out_path}/out_submit.csv")
 
-        items = items_copy = [
-            {
-                "Index": row["Index"],
-                "Sequence": row["Sequence"],
-                "Link": row["Link"],
-                "Energy": "NaN",
-                "Status": "NONE",
-            }
-            for i, row in df.iterrows()
-        ]
+        exists_results_file = os.path.exists(f"{out_path}/results_dock.csv")
+
+        if not exists_results_file:
+            with open(f"{out_path}/results_dock.csv", "w") as out_csv:
+                csv_writer = csv.writer(out_csv, delimiter=",")
+                csv_writer.writerow(["Index", "Sequence", "Link", "Energy"])
+
+        df_results = pd.read_csv(f"{out_path}/results_dock.csv")
+
+        items = []
+        for _, row in df.iterrows():
+            if row["Index"] not in df_results["Index"].tolist():
+                items.append(
+                    {
+                        "Index": row["Index"],
+                        "Sequence": row["Sequence"],
+                        "Link": row["Link"],
+                        "Energy": "NaN",
+                        "Status": "NONE",
+                    }
+                )
+        items_copy = items.copy()
 
         print("\nStarting docking scraping...")
         print(
@@ -56,16 +69,19 @@ class Scraping:
                     wait.until_not(EC.url_changes(item["Link"]))
 
                     if "is QUEUED" in driver.page_source:
-                        item["Status"] = "QUEUED"
-                        continue
+                        item["Status"] = "in QUEUE"
                     elif "is RUNNING" in driver.page_source:
-                        item["Status"] = "RUNNING"
-                        continue
+                        item["Status"] = "is RUNNING"
                     elif "Your HPEPDOCK results" in driver.page_source:
-                        item["Status"] = "FINISHED"
+                        item["Status"] = "is FINISHED"
                     else:
                         item["Status"] = "ERROR"
                         item["Energy"] = "ERROR"
+
+                    if item["Status"] != "is FINISHED":
+                        print(
+                            f'sequence {item["Index"]} {item["Status"]}. Skipping...\n'
+                        )
                         continue
 
                     # Docking Score (1st model)
@@ -99,6 +115,16 @@ class Scraping:
                         f'\nPep{item["Index"]} docking has completed. See top 10 models for it in:\n  {dock_path}\n'
                     )
 
+                    with open(f"{out_path}/results_dock.csv", "a") as out_csv:
+                        csv_writer = csv.writer(out_csv, delimiter=",")
+                        csv_writer.writerow(
+                            [
+                                item["Index"],
+                                item["Sequence"],
+                                item["Link"],
+                                item["Energy"],
+                            ]
+                        )
                 except:
                     item["Status"] = "ERROR"
                     item["Energy"] = "ERROR"
@@ -106,25 +132,21 @@ class Scraping:
 
             driver.close()
 
-            # save energy info into csv file
-            df["Energies"] = [item["Energy"] for item in items_copy]
-            df.to_csv(f"{out_path}/results_dock.csv", index=False)
-
             # check if exists docks left
             items = [item for item in items if item["Energy"] == "NaN"]
             if len(items) > 0:
                 print(f"Waiting docking... pep docks left: {len(items)}")
                 print(
                     "  docks in queue:",
-                    len([k for k in items_copy if k["Status"] == "QUEUED"]),
+                    len([k for k in items_copy if k["Status"] == "in QUEUE"]),
                 )
                 print(
                     "  docks running:",
-                    len([k for k in items_copy if k["Status"] == "RUNNING"]),
+                    len([k for k in items_copy if k["Status"] == "is RUNNING"]),
                 )
                 print(
                     "  docks completed:",
-                    len([k for k in items_copy if k["Status"] == "FINISHED"]),
+                    len([k for k in items_copy if k["Status"] == "is FINISHED"]),
                 )
                 print(
                     "  docks failed:",

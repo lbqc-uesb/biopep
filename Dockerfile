@@ -5,7 +5,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1 
 
 # install system base packages
-RUN apt-get update && apt-get install -y ncbi-blast+ nano curl git wget unzip gnupg \
+RUN apt-get update && apt-get install -y ncbi-blast+ nano curl git wget zip unzip gnupg \
     && git config --global --add safe.directory /home/biopep
 
 # install miniconda

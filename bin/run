@@ -1,5 +1,64 @@
 #!/usr/bin/env bash
 
+#-------- FUNCTIONS --------
+
+read_query_fasta() {
+    echo
+    read -p "Input your QUERY sequences file: " QUERY_INPUT
+    if [[ ! -f $QUERY_INPUT ]]; then
+        echo
+        echo "ERROR: query sequences file not found \"$QUERY_INPUT\"."
+        exit 1
+    fi
+    QUERY=$(realpath --relative-to=$(pwd) $QUERY_INPUT)
+}
+
+read_query_pdb() {
+    echo
+    read -p "Input your PDB files folder: " QUERY_INPUT
+    if [ ! -d $QUERY_INPUT ]; then
+        echo
+        echo "ERROR: PDB files folder not found \"$QUERY_INPUT\"."
+        exit 1
+    fi
+    QUERY=$(realpath --relative-to=$(pwd) $QUERY_INPUT)
+}
+
+read_receptor_details() {
+    echo
+    read -p "Input your RECEPTOR pdb file: " RECEPTOR_INPUT
+    if [ ! -f $RECEPTOR_INPUT ]; then
+        echo
+        echo "ERROR: receptor pdb file not found \"$RECEPTOR_INPUT\"."
+        exit 1
+    fi
+    RECEPTOR=$(realpath --relative-to=$(pwd) $RECEPTOR_INPUT)
+
+    echo
+    read -p "Input your binding SITE: " SITE
+}
+
+read_opcional_inputs() {
+    echo
+    read -p "Input CUTOFF value [or press Enter to use default (30)]: " CUTOFF
+    if [ -z $CUTOFF ]; then
+        CUTOFF=30
+    elif [[ ! "$CUTOFF" =~ ^[0-9]+$ ]]; then
+        echo
+        echo "ERROR: the cut off must be a number, \"$CUTOFF\" is not a number."
+        exit 1
+    fi
+
+    echo
+    read -p "Input TASKNAME [or press Enter to use default (task)]: " TASKNAME
+    if [ -z $TASKNAME ]; then
+        TASKNAME="task"
+    fi
+    echo
+}
+
+# -------- END FUNCTIONS --------
+
 # check if biopep image exists
 if [ -z $(docker images --filter "reference=biopep" -q) ]; then
     echo
@@ -7,70 +66,80 @@ if [ -z $(docker images --filter "reference=biopep" -q) ]; then
     exit 1
 fi
 
-# default values
-TASK=task
-CUT_OFF=30
+echo "Welcome to BIOPEP Pipeline!"
+echo
+echo "What do you want to do?"
 
-# Get run options
-while getopts "c:t:q:r:s:" option; do
+PS3="Choose an option: "
+
+options=(Blast Modelling Docking)
+
+select option in "${options[@]}"; do
     case $option in
-    c) # Set cut off
-        if [ ! -z $OPTARG ]; then
-            CUT_OFF=$OPTARG
-        fi 
-        if [[ ! "$CUT_OFF" =~ ^[0-9]+$ ]]; then
-            echo
-            echo "ERROR: the cut off must be a number, \"$CUT_OFF\" is not a number."
-            exit 1
-        fi
+    "Blast")
+        echo "You selected $option"
+        selected_option=$option
+        break
         ;;
-    t) # Set taskname
-        if [ ! -z $OPTARG ]; then
-            TASK=$OPTARG
-        fi 
-        TASK=$OPTARG
+    "Modelling")
+        echo "You selected $option"
+        selected_option=$option
+        break
         ;;
-    q) # Set query sequences file
-        QUERY=$OPTARG
-        if [ -z $QUERY ]; then
-            echo
-            read -p "Input your QUERY sequences file: " QUERY
-        fi
-        if [[ ! -f $QUERY ]]; then
-            echo
-            echo "ERROR: query sequences file not found \"$QUERY\"."
-            exit 1
-        fi
-        QUERY=$(realpath --relative-to=$(pwd) $QUERY)
+    "Docking")
+        echo "You selected $option"
+        selected_option=$option
+        break
         ;;
-    r) # Set receptor pdb file
-        RECEPTOR=$OPTARG
-        if [ -z $RECEPTOR ]; then
-            echo
-            read -p "Input your RECEPTOR pdb file: " RECEPTOR
-        fi
-        if [ ! -f $RECEPTOR ]; then
-            echo
-            echo "ERROR: receptor pdb file not found \"$RECEPTOR\"."
-            exit 1
-        fi
-        RECEPTOR=$(realpath --relative-to=$(pwd) $RECEPTOR)
-        ;;
-    s) # Set site string
-        SITE=$OPTARG
-        if [ -z $SITE ]; then
-            echo
-            read -p "Input your binding SITE: " SITE
-        fi
-        ;;
-    \?) # Invalid option
-        echo "ERROR: Invalid option"
-        exit 1
+    *)
+        echo "Invalid option"
         ;;
     esac
 done
 
-# execute BIOPEP
-docker run --env-file .env -v .:/home/biopep --rm -it biopep \
-    conda run -n biopep-env --live-stream /bin/bash -c \
-    "python -u main.py \"$QUERY\" \"$RECEPTOR\" \"$SITE\" \"$CUT_OFF\" \"$TASK\""
+if [ $selected_option = "Blast" -o $selected_option = "Modelling" ]; then
+    read_query_fasta
+    read_opcional_inputs
+
+    docker run --env-file .env -v .:/home/biopep -v --rm -it biopep \
+        conda run -n biopep-env --live-stream /bin/bash -c \
+        "python -u -m app.commands.run \"$selected_option\" \"$QUERY\" \"$CUTOFF\" \"$TASKNAME\""
+else
+    echo
+    echo "What input method will you use?"
+
+    PS3="Choose an option: "
+
+    input_options=(Fasta PDB)
+
+    select option in "${input_options[@]}"; do
+        case $option in
+        "Fasta")
+            echo "You selected $option"
+            input_method=$option
+            break
+            ;;
+        "PDB")
+            echo "You selected $option"
+            input_method=$option
+            break
+            ;;
+        *)
+            echo "Invalid option"
+            ;;
+        esac
+    done
+
+    if [ $input_method = "Fasta" ]; then
+        read_query_fasta
+    else
+        read_query_pdb
+    fi
+
+    read_receptor_details
+    read_opcional_inputs
+
+    docker run --env-file .env -v .:/home/biopep --rm -it biopep \
+        conda run -n biopep-env --live-stream /bin/bash -c \
+        "python -u -m app.commands.run \"$selected_option\" \"$input_method\" \"$QUERY\" \"$RECEPTOR\" \"$SITE\" \"$CUTOFF\" \"$TASKNAME\""
+fi

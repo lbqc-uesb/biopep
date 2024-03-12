@@ -11,25 +11,26 @@
 
 - A [Modeller](https://salilab.org/modeller/) License Key;
 - System Operational with [Docker](https://www.docker.com) installed;
+- Packages `git` and `make`
 
 ## Download
 
 Download biopep source code:
 ```bash
-curl -L https://github.com/lbqc-uesb/biopep/archive/refs/tags/v2.0.tar.gz -o biopep.tar.gz
-```
-
-Unzip files:
-```bash
-tar -xzf biopep.tar.gz
-```
-
-Navigate to biopep folder:
-```bash
-cd biopep-2.0
+git clone https://github.com/lbqc-uesb/biopep.git
 ```
 
 ## Installation
+
+Navigate to biopep folder:
+```bash
+cd biopep
+```
+
+Give execution permission to scripts files
+```bash
+sudo chmod +x bin
+```
 
 Run installer script
 ```bash
@@ -42,29 +43,15 @@ Execute BioPep:
 ```bash
 make run
 ```
-or
-```bash
-make run query={QUERY} receptor={RECEPTOR} site={SITE}
-```
-or
-```bash
-make run query={QUERY} receptor={RECEPTOR} site={SITE} task={TASK} cutoff={CUT OFF}
-```
+
+[Click here](https://whimsical.com/biopep-fluxo-dos-comandos-5SUK9QhkyxaYorx6jDzk1t) to see BioPep execution flow.
 
 ### Options:
-- `-q` | **QUERY**: query sequences file (.fasta, example: "*/home/myuser/query.fasta*")
-- `-r` | **RECEPTOR**: receptor file (.pdb, example: "*/home/myuser/receptor.pdb*")
-- `-s` | **SITE**: binding site (example: "*455:B, 486:B, 493:B, 501:B*")
-- `-c` | **CUT-OFF**: max length of sequence (default: 30)
-- `-t` | **TASK**: taskname to results folder (default: "*task*")
-
-### Examples:
-```bash
-make run query=input/example/query.fasta receptor=input/example/receptor_6lzg.pdb site="455:B, 486:B, 493:B, 501:B, 505:B"
-```
-```bash
-make run query=input/example/query.fasta receptor=input/example/receptor_6lzg.pdb site="455:B, 486:B, 493:B, 501:B, 505:B" cutoff=35 task=mydocking
-```
+- **QUERY**: query sequences file (.fasta, example: "*/home/myuser/query.fasta*") or pdb query folder (example: "*/home/myuser/pdbs*")
+- **RECEPTOR**: receptor file (.pdb, example: "*/home/myuser/receptor.pdb*")
+- **SITE**: binding site (example: "*455:B, 486:B, 493:B, 501:B*")
+- **CUTOFF**: max length of aminoacid sequence (default: 30)
+- **TASK**: taskname to save results folder (default: "*task*")
 
 ## Please, cite:
 > ### BioPep

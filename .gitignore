@@ -180,7 +180,9 @@ pyrightconfig.json
 .vscode/
 
 # Output Tasks and Logs (Search, Modelling and Docking results)
+!output/*
 output/*
+!output/__init__.py
 
 # Input files
 !input/

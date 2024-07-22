@@ -2,26 +2,30 @@ FROM python:3.9.17-slim-bullseye
 
 # define python environment variables
 ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1 
+ENV PYTHONUNBUFFERED 1
 
 # install system base packages
-RUN apt-get update && apt-get install -y ncbi-blast+ nano curl git wget zip unzip gnupg \
+RUN apt-get update && apt-get install -y ncbi-blast+ nano curl git wget zip unzip gnupg libglib2.0-0 libnss3 \
     && git config --global --add safe.directory /home/biopep
 
 # install miniconda
-ENV PATH="/root/miniconda/bin:${PATH}"
+ENV PATH "/root/miniconda/bin:${PATH}"
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh \
     && bash /tmp/miniconda.sh -b -p /root/miniconda \
     && rm /tmp/miniconda.sh \
     && conda update conda \
     && conda config --set auto_activate_base false
 
-# download the Chrome Browser / Chrome Driver and unzip it into /usr/local/bin directory
-RUN CHROME_VERSION=$(curl -sS chromedriver.storage.googleapis.com/LATEST_RELEASE) \
-    && wget -q https://dl.google.com/linux/chrome/deb/pool/main/g/google-chrome-stable/google-chrome-stable_${CHROME_VERSION}-1_amd64.deb \
-    && apt-get -y install ./google-chrome-stable_${CHROME_VERSION}-1_amd64.deb \
-    && wget -O /tmp/chromedriver.zip http://chromedriver.storage.googleapis.com/$CHROME_VERSION/chromedriver_linux64.zip \
-    && unzip /tmp/chromedriver.zip chromedriver -d /usr/local/bin/
+# download the Chrome Browser
+RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update -y \
+    && apt-get install -y google-chrome-stable
+
+# download the Chrome Driver
+RUN CHROME_VERSION=$(google-chrome --version | grep -o '[0-9.]*') \
+    && wget -O /tmp/chromedriver.zip https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/linux64/chromedriver-linux64.zip \
+    && unzip /tmp/chromedriver.zip chromedriver-linux64/chromedriver -d /usr/local/bin/
 
 # set display port as an environment variable
 ENV DISPLAY=:99

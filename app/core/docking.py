@@ -69,19 +69,20 @@ def submit(
 
             print(f"\nDocking submitted to HPEPDOCK SERVER:\n   {link}")
 
-        except:
+        except Exception as error:
             with open(f"{path}/submit.log", "a") as log_csv:
                 csv_writer = csv.writer(log_csv, delimiter=",")
                 csv_writer.writerow(
                     [
-                        f"{ligand} throw error on submit",
+                        f"{ligand}, ERROR: {error}",
                         f'{datetime.today().strftime("%Y-%m-%d %H:%M")}',
                     ]
                 )
             print("\nError on submit docking to HPEPDOCK SERVER.")
 
         finally:
-            driver.close()
+            if 'driver' in locals():
+                driver.close()
 
     else:
         with open(f"{path}/submit.log", "a") as log_csv:

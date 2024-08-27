@@ -3,6 +3,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from datetime import datetime
 
 import pandas as pd
 import time
@@ -27,19 +28,19 @@ def start(task_id: str):
             csv_writer.writerow(["Index", "Sequence", "Link", "Energy"])
 
     df_results = pd.read_csv(f"{out_path}/results_dock.csv")
+    completed_docks = df_results["Index"].tolist()
 
     items = []
     for _, row in df.iterrows():
-        if row["Index"] not in df_results["Index"].tolist():
-            items.append(
-                {
-                    "Index": row["Index"],
-                    "Sequence": row["Sequence"],
-                    "Link": row["Link"],
-                    "Energy": "NaN",
-                    "Status": "NONE",
-                }
-            )
+        items.append(
+            {
+                "Index": row["Index"],
+                "Sequence": row["Sequence"],
+                "Link": row["Link"],
+                "Energy": "NaN",
+                "Status": "NONE",
+            }
+        )
     items_copy = items.copy()
 
     print("\nStarting docking scraping...")
@@ -59,6 +60,12 @@ def start(task_id: str):
 
         for item in items:
             try:
+                if item["Index"] in completed_docks:
+                    item["Status"] = "is COMPLETE"
+                    dt = datetime.today()
+                    print(f'[{dt.strftime("%H:%M:%S")}] pep {item["Index"]} {item["Status"]}. Skipping...\n')
+                    continue
+
                 driver.get(item["Link"])
 
                 wait = WebDriverWait(driver, TIME_TO_WAIT, 1)
@@ -75,7 +82,8 @@ def start(task_id: str):
                     item["Energy"] = "ERROR"
 
                 if item["Status"] != "is FINISHED":
-                    print(f'pep {item["Index"]} {item["Status"]}. Skipping...\n')
+                    dt = datetime.today()
+                    print(f'[{dt.strftime("%H:%M:%S")}] pep {item["Index"]} {item["Status"]}. Skipping...\n')
                     continue
 
                 # Docking Score (1st model)
@@ -105,8 +113,9 @@ def start(task_id: str):
                 os.rmdir(f"{dock_path}/{directory}")
                 os.remove("top10_models.tar.gz")
 
+                dt = datetime.today()
                 print(
-                    f'\nPep{item["Index"]} docking has completed. See top 10 models for it in:\n  {dock_path}\n'
+                    f'\n[{dt.strftime("%H:%M:%S")}] Pep{item["Index"]} docking has completed. See top 10 models for it in:\n  {dock_path}\n'
                 )
 
                 with open(f"{out_path}/results_dock.csv", "a") as out_csv:
@@ -120,6 +129,8 @@ def start(task_id: str):
                         ]
                     )
             except:
+                dt = datetime.today()
+                print(f'[{dt.strftime("%H:%M:%S")}] pep {item["Index"]} raised an ERROR.\n')
                 item["Status"] = "ERROR"
                 item["Energy"] = "ERROR"
                 continue
@@ -127,24 +138,30 @@ def start(task_id: str):
         driver.close()
 
         # check if exists docks left
-        items = [item for item in items if item["Energy"] == "NaN"]
+        items = [item for item in items if item["Status"] in ["in QUEUE", "is RUNNING"]]
+
         if len(items) > 0:
             print(f"Waiting docking... pep docks left: {len(items)}")
-            print(
-                "  docks in queue:",
-                len([k for k in items_copy if k["Status"] == "in QUEUE"]),
-            )
-            print(
-                "  docks running:",
-                len([k for k in items_copy if k["Status"] == "is RUNNING"]),
-            )
-            print(
-                "  docks completed:",
-                len([k for k in items_copy if k["Status"] == "is FINISHED"]),
-            )
-            print(
-                "  docks failed:",
-                len([k for k in items_copy if k["Status"] == "ERROR"]),
-            )
+        else:
+            print("Docking scraping finished")
+
+        print(
+            "  docks in queue:",
+            len([k for k in items_copy if k["Status"] == "in QUEUE"]),
+        )
+        print(
+            "  docks running:",
+            len([k for k in items_copy if k["Status"] == "is RUNNING"]),
+        )
+        print(
+            "  docks completed:",
+            len([k for k in items_copy if k["Status"] in ["is FINISHED", "is COMPLETE"]]),
+        )
+        print(
+            "  docks failed:",
+            len([k for k in items_copy if k["Status"] == "ERROR"]),
+        )
+
+        if len(items) > 0:
             print(flush=True)
             time.sleep(RELOAD_TIME)

@@ -44,6 +44,13 @@ Execute BioPep:
 make run
 ```
 
+## Continue
+
+Execute BioPep to continue docking scraping:
+```bash
+make run
+```
+
 [Click here](https://whimsical.com/biopep-fluxo-dos-comandos-5SUK9QhkyxaYorx6jDzk1t) to see BioPep execution flow.
 
 ### Options:

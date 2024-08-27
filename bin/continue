@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+# check if biopep image exists
+if [ -z $(docker images --filter "reference=biopep" -q) ]; then
+    echo
+    echo "You not yet install biopep! Use \"make install\" to install it!"
+    exit 1
+fi
+
+echo "Welcome back to BIOPEP Pipeline!"
+echo
+read -p "Input your TASK ID (folder name into /output): " TASK_ID
+
+if [[ ! -d "output/$TASK_ID" ]]; then
+    echo
+    echo "ERROR: task folder not found \"$TASK_ID\"."
+    exit 1
+fi
+
+docker run --env-file .env -v .:/home/biopep -v --rm -it biopep \
+    conda run -n biopep-env --live-stream /bin/bash -c \
+    "python -u -m app.commands.continue \"$TASK_ID\""

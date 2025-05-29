@@ -8,6 +8,4 @@ dependencies:
   - pip
   - poetry=1
   - python=3.9.17
-  - salilab::modeller=10.4
-platforms:
-  - linux-64
+  - salilab::modeller=10.6

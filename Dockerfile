@@ -1,20 +1,20 @@
-FROM python:3.9.17-slim-bullseye
+FROM python:3.9.17-slim-buster
 
 # define python environment variables
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
 # install system base packages
 RUN apt-get update && apt-get install -y ncbi-blast+ nano curl git wget zip unzip gnupg libglib2.0-0 libnss3 \
     && git config --global --add safe.directory /home/biopep
 
 # install miniconda
-ENV PATH "/root/miniconda/bin:${PATH}"
+ENV PATH="/root/miniconda/bin:${PATH}"
 RUN wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O /tmp/miniconda.sh \
     && bash /tmp/miniconda.sh -b -p /root/miniconda \
     && rm /tmp/miniconda.sh \
     && conda update conda \
-    && conda config --set auto_activate_base false
+    && conda config --set auto_activate false
 
 # download the Chrome Browser
 RUN wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
@@ -45,6 +45,6 @@ COPY . .
 RUN conda create --name biopep-env --file conda-linux-64.lock \
     && eval "$(conda shell.bash hook)" \
     && conda activate biopep-env \
-    && sed -i "s/license = r'XXXX'/import os/g" ${CONDA_PREFIX}/lib/modeller-10.4/modlib/modeller/config.py \
-    && echo "license = os.environ.get('KEY_MODELLER')" >> ${CONDA_PREFIX}/lib/modeller-10.4/modlib/modeller/config.py \
+    && sed -i "s/license = r'XXXX'/import os/g" ${CONDA_PREFIX}/lib/modeller-10.6/modlib/modeller/config.py \
+    && echo "license = os.environ.get('KEY_MODELLER')" >> ${CONDA_PREFIX}/lib/modeller-10.6/modlib/modeller/config.py \
     && poetry install   
